@@ -1,5 +1,6 @@
 namespace SpriteKind {
     export const Object = SpriteKind.create()
+    export const Boss = SpriteKind.create()
 }
 // Game over when you reach the end of the
 // neighborhood
@@ -29,7 +30,6 @@ controller.up.onEvent(ControllerButtonEvent.Pressed, function () {
 })
 controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
     let package1 = sprites.createProjectileFromSprite(img`
-        . . . . . . . . . . . . . . . .
         . . . . . . . e e e e e e e . .
         . . . . . . e d d d d d e e . .
         . . . . . e d d d d d d e e . .
@@ -50,7 +50,6 @@ controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
 // Deliver packages up (A) or down (B)
 controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
     let package2 = sprites.createProjectileFromSprite(img`
-        . . . . . . . . . . . . . . . .
         . . . . . . . e e e e e e e . .
         . . . . . . e d d d d d e e . .
         . . . . . e d d d d d d e e . .
@@ -167,6 +166,55 @@ let car = sprites.create(img`
 tiles.placeOnRandomTile(car, myTiles.tile4)
 controller.moveSprite(car)
 scene.cameraFollowSprite(car)
+let bossHealth = 3
+let boss = sprites.create(img`
+    . . . . . . . . . . . . . . . .
+    . . . . . . . . . . . . . . . .
+    . . . . . . . . 6 6 . . . . . .
+    . . . . . . 6 6 6 6 6 6 . . . .
+    . . . . . 6 6 6 6 6 6 6 6 . . .
+    . . . . 6 6 6 6 6 6 6 6 6 6 . .
+    . . . 6 6 6 6 6 6 6 6 6 6 6 . .
+    . . . 6 6 6 6 6 6 6 6 6 6 6 . .
+    . . . 6 6 6 6 6 6 6 6 6 6 6 . .
+    . . . . 6 6 6 6 6 6 6 6 6 6 . .
+    . . . . . 6 6 6 6 6 6 6 6 . . .
+    . . . . . . 6 6 6 6 6 6 . . . .
+    . . . . . . . . 6 6 . . . . . .
+    . . . . . . . . . . . . . . . .
+    . . . . . . . . . . . . . . . .
+    . . . . . . . . . . . . . . . .
+    . . . . . . . . . . . . . . . .
+    `, SpriteKind.Boss)
+
+boss.setPosition(90, 50)
+boss.setVelocity(20, 15)
+boss.setBounceOnWall(true)
+boss.say("RAM ME!")
+
+sprites.onOverlap(SpriteKind.Player, SpriteKind.Boss, function (sprite, otherSprite) {
+    let impact = Math.abs(sprite.vx) + Math.abs(sprite.vy)
+    if (impact > 60) {
+        bossHealth = bossHealth - 1
+        music.bigCrash.play()
+        otherSprite.startEffect(effects.fire, 100)
+        scene.cameraShake(2, 200)
+        boss.say("Boss HP: " + bossHealth)
+        if (bossHealth <= 0) {
+            otherSprite.destroy()
+            info.changeScoreBy(10)
+            music.magicWand.play()
+            game.setGameOverEffect(true, effects.confetti)
+            game.gameOver(true)
+        }
+    } else {
+        music.playTone(147, music.beat(BeatFraction.Quarter))
+        music.playTone(139, music.beat(BeatFraction.Quarter))
+        music.playTone(131, music.beat(BeatFraction.Quarter))
+        scene.cameraShake(2, 200)
+        info.changeScoreBy(-1)
+    }
+})
 for (let value of tiles.getTilesByType(myTiles.tile1)) {
     let myPurpleHouse = sprites.create(img`
         ....................8a8aa8a8....................
